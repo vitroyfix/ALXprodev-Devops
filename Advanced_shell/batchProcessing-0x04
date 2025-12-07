@@ -4,6 +4,9 @@ POKEMONS=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
 DIR="pokemon_data_parallel"
 mkdir -p "$DIR"
 
+# Array to track background job PIDs
+PIDS=()
+
 # Function to fetch a single Pokemon
 fetch_pokemon() {
     local pokemon=$1
@@ -16,15 +19,18 @@ fetch_pokemon() {
     fi
 }
 
-# Run all fetches in parallel
+# Run all fetches in parallel and save PIDs
 for p in "${POKEMONS[@]}"; do
     fetch_pokemon "$p" &
+    PIDS+=($!)
 done
 
 # Wait for all background jobs to finish
-wait
+for pid in "${PIDS[@]}"; do
+    wait $pid || kill $pid 2>/dev/null
+done
 
-# List jobs (optional, for test)
+# Optional: list jobs
 jobs
 
 echo "All downloads complete."
